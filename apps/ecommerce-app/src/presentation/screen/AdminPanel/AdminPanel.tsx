@@ -8,7 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAdminPresenter } from "../../presenter/Admin.presenter";
-import { Button, Modal } from "ui-test-fruit";
+import { Button, Modal } from "@shopifruta/ui";
 
 const AdminDashboard: React.FC = () => {
   const {

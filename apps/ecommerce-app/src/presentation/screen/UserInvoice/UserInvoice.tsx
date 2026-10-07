@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Eye, Calendar, FileText } from "lucide-react";
-import { Modal, Button } from "ui-test-fruit";
+import { Modal, Button } from "@shopifruta/ui";
 import { Link } from "react-router-dom";
 import { useUserInvoicesPresenter } from "../../presenter/UserInvoice.presenter";
 

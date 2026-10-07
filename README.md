@@ -1,193 +1,177 @@
-# ShopiFruta - Aplicación de Ecommerce
+# ShopiFruta
 
-## Visión General
+[![CI](https://github.com/teamzz111/shopifruta/actions/workflows/ci.yml/badge.svg)](https://github.com/teamzz111/shopifruta/actions/workflows/ci.yml)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-3-6E9F18?logo=vitest&logoColor=white)
+![Storybook](https://img.shields.io/badge/Storybook-8-FF4785?logo=storybook&logoColor=white)
 
-ShopiFruta es una aplicación de comercio electrónico para la venta de frutas, desarrollada siguiendo principios de Clean Architecture y desplegada con AWS Amplify. La aplicación ofrece una experiencia completa de compra en línea, incluyendo catálogo de productos, carrito de compras, proceso de checkout, y administración de facturas.
+ShopiFruta is a fruit e-commerce front end. It has a customer storefront and an admin dashboard. The code follows **Clean Architecture**: domain entities, repository interfaces and use cases know nothing about React, and a small typed **dependency injection container** wires them to concrete infrastructure. The UI is built from a shared, Storybook-documented component library that lives in the same Yarn Workspaces monorepo.
 
-## Demo en vivo
+The user interface is in Spanish, and prices are in Colombian pesos with per-product tax rates.
 
-Puedes visitar la aplicación desplegada en: [https://main.d1g3mmbx6bbo0z.amplifyapp.com/login](https://main.d1g3mmbx6bbo0z.amplifyapp.com/login)
+## Features
 
-## Características principales
+- **Role-based access.** Log in as a *client* or an *admin* (role selection, no password), with protected routes for each role.
+- **Product catalog.** 15 seeded products in three categories, with live stock levels persisted in `localStorage`.
+- **Shopping cart.** Add, update and remove items. Stock is reserved when an item is added and restored when it is removed or the quantity drops.
+- **Checkout.** Validated shipping form (name, phone, email, country). The country must be in the Americas, which is checked against the [REST Countries API](https://restcountries.com). Subtotal, per-item tax and total are calculated at checkout, and placing an order generates an invoice.
+- **Customer invoices.** Clients see their own purchase history, matched by email, and can open each invoice's details in a modal.
+- **Admin dashboard.** Total sales, number of invoices, units sold and unique customers, plus a list of every invoice with a detail view.
+- **Responsive layout.** Tailwind CSS with a mobile navigation menu.
 
-- 🛒 Catálogo de productos con filtros
-- 🔍 Búsqueda y navegación intuitiva
-- 🧾 Gestión de carrito de compras
-- 💳 Proceso de checkout simplificado
-- 📊 Panel de administración para ventas
-- 📱 Diseño responsivo adaptable a todos los dispositivos
+## Architecture
 
-## Arquitectura y Stack Tecnológico
-
-### Frontend
-
-- **React 19**: Utilizamos la última versión de React por su rendimiento mejorado y nuevas características como concurrent rendering.
-- **TypeScript**: Proporciona tipado estático para reducir errores y mejorar la mantenibilidad del código.
-- **Vite**: Bundler moderno que ofrece tiempos de compilación rápidos y una experiencia de desarrollo fluida.
-- **Tailwind CSS**: Framework de utilidades CSS para un desarrollo rápido y consistente de interfaces.
-- **Zustand**: Solución ligera para gestión de estado global con una API simple e intuitiva.
-- **React Router**: Para navegación y enrutamiento dentro de la aplicación.
-- **Lucide React**: Biblioteca de iconos SVG limpios y consistentes.
-
-### Arquitectura
-
-El proyecto sigue los principios de **Clean Architecture**, dividiendo claramente la aplicación en capas:
-
-- **Core Domain**: Entidades y reglas de negocio independientes de frameworks y UI.
-- **Use Cases**: Casos de uso específicos de la aplicación.
-- **Infrastructure**: Adaptadores y servicios externos.
-- **Presentation**: Componentes y lógica de UI.
+The app in `apps/ecommerce-app` is split into layers. Dependencies only point inward:
 
 ```
-src/
-├── core/
-│   ├── domain/
-│   │   ├── entities/
-│   │   └── repositories/
-│   ├── useCases/
-│   └── actions/
-├── di/
-│   └── container.ts
-├── infrastructure/
-│   └── repositories/
-├── presentation/
-│   ├── screens/
-│   ├── presenters/
-│   └── shared/
-└── stores/
+┌──────────────────────────────────────────────────────────────┐
+│ Presentation   screens · presenters (hooks) · shared UI      │
+│                Zustand stores                                │
+└──────────────────────────────┬───────────────────────────────┘
+                               │ container.resolve("...Actions")
+┌──────────────────────────────▼───────────────────────────────┐
+│ DI container   src/di/container.ts (composition root)        │
+└──────────────────────────────┬───────────────────────────────┘
+                               │ constructor injection
+┌──────────────────────────────▼───────────────────────────────┐
+│ Application    Actions (facades) → Use cases                 │
+└──────────────────────────────┬───────────────────────────────┘
+                               │ depends on interfaces only
+┌──────────────────────────────▼───────────────────────────────┐
+│ Domain         Entities · Repository interfaces              │
+└──────────────────────────────▲───────────────────────────────┘
+                               │ implements
+┌──────────────────────────────┴───────────────────────────────┐
+│ Infrastructure localStorage repositories · REST Countries    │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-### Patrones de Diseño Implementados
+| Layer | Location | Responsibility |
+| --- | --- | --- |
+| Domain | `src/core/domain` | Entities (`Product`, `Invoice`, `Country`) and repository interfaces (`ProductRepository`, `InvoiceRepository`, `CountryRepository`). |
+| Use cases | `src/core/useCases` | One class per operation, such as `GetInvoicesUseCase`, `CreateInvoiceUseCase`, `UpdateStockUseCase`, `GetInvoiceStatisticsUseCase` and `IsValidCountryInRegionUseCase`. Each receives its repository through the constructor. |
+| Actions | `src/core/actions` | Facades (`ProductActions`, `InvoiceActions`, `CountryActions`) that group related use cases into a single entry point for the UI. |
+| Infrastructure | `src/infraestructure`, plus the repository implementations | `ProductLocalStorageRepository` and `InvoiceLocalStorageRepository` persist to `localStorage`. `RemoteCountryRepository` calls the REST Countries API and caches results per region. |
+| Presentation | `src/presentation`, `src/stores` | Screens contain only markup. Presenter hooks (`useCheckoutPresenter`, `useAdminPresenter`, …) hold the view logic. Zustand stores hold auth, cart, product and country state. |
 
-1. **Dependency Injection (DI)**: Utilizamos un contenedor de DI personalizado para gestionar dependencias y facilitar los tests.
+### Dependency injection
 
-2. **Repository Pattern**: Abstrae la lógica de acceso a datos, permitiendo cambiar la fuente de datos sin modificar la lógica de negocio.
+`src/di/container.ts` is the single composition root. The container is typed against a `Dependencies` map, so `register` and `resolve` are checked at compile time:
 
-3. **Presenter Pattern**: Separa la lógica de presentación de los componentes visuales, mejorando la testabilidad.
-
-4. **Action Pattern**: Encapsula las operaciones de casos de uso en interfaces simples para la capa de presentación.
-
-5. **Store Pattern (con Zustand)**: Gestión de estado global con API sencilla y soporte para persistencia.
-
-## Despliegue con AWS Amplify
-
-Elegimos **AWS Amplify** para el despliegue por varias razones:
-
-- **CI/CD Integrado**: Despliegue automático conectado directamente con nuestro repositorio Git.
-- **Escalabilidad**: Infraestructura gestionada que escala automáticamente según las necesidades.
-- **Dominios y HTTPS**: Configuración sencilla de dominios personalizados con certificados SSL.
-- **Preview Deployments**: Permite revisar los cambios en entornos de prueba antes de fusionar a producción.
-- **Monitoreo y Analíticas**: Herramientas integradas para monitorear el rendimiento de la aplicación.
-
-El proceso de despliegue se activa automáticamente con cada push a la rama principal, siguiendo este flujo:
-
-1. Se detectan cambios en el repositorio
-2. Amplify ejecuta el proceso de construcción con los scripts definidos
-3. Se ejecutan tests automatizados
-4. Si todo es correcto, se despliega la nueva versión
-5. Se invalida la caché de CDN para servir el nuevo contenido
-
-Además, hemos implementado GitHub Actions para asegurar la calidad del código antes de que los cambios lleguen a la rama principal:
-
-```yaml
-name: Test and Validate
-
-on:
-  pull_request:
-    branches: [ main, develop ]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'yarn'
-      - run: yarn install
-      - run: yarn lint
-      - run: yarn test
-      - run: yarn build
+```ts
+class Container {
+  register<K extends DependencyKeys>(key: K, instance: Dependencies[K]): void;
+  resolve<K extends DependencyKeys>(key: K): Dependencies[K]; // throws if not registered
+}
 ```
 
-Este workflow se ejecuta automáticamente en cada Pull Request hacia las ramas principales, verificando:
-- Integridad del código con linters
-- Ejecución exitosa de tests unitarios y de integración
-- Compilación correcta del proyecto
+At startup, the container instantiates the repositories, injects them into the use cases, injects the use cases into the action facades, and registers everything. Stores and presenters only call `container.resolve("productActions" | "invoiceActions" | "countryActions")`, so they never import a concrete repository. To replace `localStorage` with a real API, you would write a new class that implements the repository interface and change one line in the container.
 
-Esto asegura que solo código validado sea integrado en las ramas principales, manteniendo la calidad y estabilidad del proyecto.
+### Design patterns
 
-## Librería de UI
+- **Repository**: data access is hidden behind domain interfaces.
+- **Use case / interactor**: each business operation is its own class.
+- **Facade (Actions)**: gives the presentation layer one stable API per domain area.
+- **Presenter (hooks)**: keeps view logic such as validation, totals and loading state out of the JSX.
+- **Store**: global state with Zustand, using `persist` middleware for the session and the cart.
 
-Hemos creado nuestra propia librería de componentes UI (`@mono-repo/ui`) dentro del monorepo por varias razones:
+## UI component library
 
-- **Consistencia**: Garantiza una experiencia visual coherente en todas las aplicaciones.
-- **Reutilización**: Los componentes se pueden compartir entre múltiples aplicaciones.
-- **Mantenibilidad**: Centraliza los cambios de diseño, facilitando actualizaciones globales.
-- **Documentación**: Incluye una documentación integrada de los componentes disponibles.
+`apps/ui` (`@shopifruta/ui`) is a reusable component package built with Tailwind CSS and `class-variance-authority`, in the style of shadcn/ui:
 
-La librería está construida sobre **Tailwind CSS** y **shadcn/ui**, aprovechando componentes accesibles y personalizables que siguen las mejores prácticas de diseño.
+- Components: `Button`, `Badge`, `Card` and `Modal`, with variants and sizes.
+- Bundled with **tsup** into ESM and CJS with type declarations (`dist/`).
+- Documented in **Storybook 8**, with stories for every component and Chromatic integration.
+- Unit tested with Vitest and Testing Library.
 
-## Estructura del Monorepo
+The storefront uses it as a workspace dependency.
 
-El proyecto está estructurado como un monorepo utilizando Yarn Workspaces:
+## Tech stack
+
+| Area | Tools |
+| --- | --- |
+| UI | React 19, React Router 7, Tailwind CSS 4, Lucide icons |
+| Language and build | TypeScript 5, Vite 6, tsup |
+| State | Zustand 5 (with `persist`) |
+| Testing | Vitest 3, Testing Library, jsdom |
+| Component docs | Storybook 8, Chromatic |
+| Quality | ESLint 9 (typescript-eslint, react-hooks), Prettier, Lefthook pre-push hook |
+| Monorepo | Yarn Workspaces (Yarn 1) |
+| CI | GitHub Actions (lint, test, build) |
+
+## Project structure
 
 ```
-/
+.
 ├── apps/
-│   └── ecommerce-app/  # Aplicación principal
-├── packages/
-│   └── ui/  # Biblioteca de componentes compartidos
-├── package.json  # Con configuración de workspaces
-└── yarn.lock
+│   ├── ecommerce-app/            # Storefront and admin dashboard
+│   │   └── src/
+│   │       ├── core/
+│   │       │   ├── domain/
+│   │       │   │   ├── entities/       # Product, Invoice, Country
+│   │       │   │   └── repositories/   # Repository interfaces (+ invoice/country implementations)
+│   │       │   ├── useCases/           # Products, Admin (invoices), Country, Stats
+│   │       │   └── actions/            # Facades consumed by the UI
+│   │       ├── di/container.ts         # Typed DI container / composition root
+│   │       ├── infraestructure/        # localStorage product repository
+│   │       ├── presentation/
+│   │       │   ├── screen/             # Login, ProductList, Cart, Checkout, UserInvoice, AdminPanel, NotFound
+│   │       │   ├── presenter/          # View-logic hooks per screen
+│   │       │   └── shared/             # Navbar, ProductCard, Notification
+│   │       ├── stores/                 # Zustand stores (auth, cart, products, countries)
+│   │       ├── utils/                  # ProtectedRoute, helpers
+│   │       └── __tests__/              # Checkout screen tests
+│   └── ui/                       # @shopifruta/ui component library
+│       ├── src/components/       # Button, Badge, Card, Modal
+│       ├── src/__test__/         # Component tests
+│       └── stories/              # Storybook stories
+├── .github/workflows/ci.yml
+├── lefthook.yml
+└── package.json                  # Workspaces and root scripts
 ```
 
-Esta estructura permite:
-- Compartir código y dependencias entre aplicaciones
-- Gestionar versiones de manera centralizada
-- Simplificar los flujos de CI/CD
-- Facilitar la creación de nuevas aplicaciones dentro del ecosistema
+## Getting started
 
-## Instalación y Desarrollo Local
+### Prerequisites
 
-### Prerrequisitos
+- Node.js 18 or later
+- Yarn 1.22
 
-- Node.js v18+
-- Yarn v1.22+
-
-### Instalación
+### Install and run
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/company/shopifrutas.git
-cd shopifrutas/apps/ecommerce-app
-
-# Instalar dependencias
+git clone https://github.com/teamzz111/shopifruta.git
+cd shopifruta
 yarn install
-
-# Iniciar el servidor de desarrollo
 yarn dev
 ```
 
-La aplicación estará disponible en http://localhost:5173
+The app runs at http://localhost:5173. Choose a role on the login screen to start.
 
-### Scripts disponibles
+### Scripts (from the repo root)
 
-- `yarn dev` - Inicia el servidor de desarrollo
-- `yarn build` - Compila la aplicación para producción
-- `yarn preview` - Previsualiza la versión compilada localmente
-- `yarn lint` - Ejecuta análisis estático del código
-- `yarn test` - Ejecuta las pruebas
+| Command | Description |
+| --- | --- |
+| `yarn dev` | Start the storefront dev server (Vite). |
+| `yarn build` | Build the UI library, then type-check and build the storefront. |
+| `yarn lint` | Run ESLint on the storefront. |
+| `yarn test` | Run the UI library and storefront test suites. |
+| `yarn storybook` | Start Storybook for the component library on port 6006. |
 
-## Pruebas
+Each workspace also has its own scripts. For example, `yarn workspace @shopifruta/ecommerce-app test:watch` and `test:coverage`, and `yarn workspace @shopifruta/ui build-storybook`. To publish Storybook with `yarn workspace @shopifruta/ui chromatic`, set the `CHROMATIC_PROJECT_TOKEN` environment variable first.
 
-El proyecto utiliza Vitest para testing, con Jest como runner. Incluye:
+## Testing
 
-- Tests unitarios para lógica de negocio
-- Tests de componentes con Testing Library
-- Tests de integración para flujos críticos como checkout
+Tests run with **Vitest** in a jsdom environment, using **Testing Library**:
 
-## Aspectos adicionales
- - Se ha desplegado con chromatic https://67f350e690a71935093ee666-pmlwkyglst.chromatic.com/
- - Se ha desplegado la librería https://www.npmjs.com/package/ui-test-fruit
+- `apps/ecommerce-app/src/__tests__/checkout.test.tsx`: tests for the checkout screen. They cover rendering the form, showing the price summary, handling user input and submitting the form. The Zustand stores, the router and the checkout presenter are mocked, so the view is tested on its own.
+- `apps/ui/src/__test__/`: component tests for `Button` (variants, sizes, disabled state) and `Badge`.
+
+```bash
+yarn test
+```
+
+CI runs lint, tests and the production build on every push and pull request to `main`.

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "ui-test-fruit";
+import { Button } from "@shopifruta/ui";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import useCheckoutPresenter from "../../presenter/Checkout.presenter";
 

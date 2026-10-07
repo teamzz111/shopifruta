@@ -9,7 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "ui-test-fruit";
+} from "@shopifruta/ui";
 import { ImageIcon, ShoppingCartIcon } from "lucide-react";
 
 const ProductCard = memo(

@@ -1,7 +1,9 @@
 {
-  "name": "ecommerce-app",
+  "name": "@shopifruta/ecommerce-app",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "ShopiFruta storefront and admin dashboard (React 19 + Vite), organized with Clean Architecture and dependency injection.",
+  "author": "Andrés Largo <contacto@andreslargo.com>",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +15,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "ui-test-fruit": "*",
+    "@shopifruta/ui": "*",
     "@tailwindcss/vite": "^4.0.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

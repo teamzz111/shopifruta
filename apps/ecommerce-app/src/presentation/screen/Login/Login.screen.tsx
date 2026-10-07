@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "ui-test-fruit";
+import { Button } from "@shopifruta/ui";
 import { ShoppingCart, ChartBar, User } from "lucide-react";
 import useLoginPresenter from "../../presenter/Login.presenter";
 
@@ -10,7 +10,7 @@ const Login: React.FC = () => {
     <div className="min-h-[calc(100vh-160px)] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900">FruitShop</h1>
+          <h1 className="text-3xl font-bold text-gray-900">ShopiFruta</h1>
           <p className="mt-2 text-gray-600">
             Inicia sesión para acceder a la tienda
           </p>
@@ -103,7 +103,7 @@ const Login: React.FC = () => {
         </div>
 
         <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Esta es una aplicación de prueba técnica</p>
+          <p>Aplicación de demostración</p>
           <p>No se requiere contraseña para ingresar</p>
         </div>
       </div>

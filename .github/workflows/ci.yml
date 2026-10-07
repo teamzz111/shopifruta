@@ -1,4 +1,4 @@
-name: Test UI Package
+name: CI
 
 on:
   push:
@@ -7,13 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  test-ui:
-    name: Run UI tests
+  ci:
+    name: Lint, test and build
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: /ui
 
     steps:
       - name: Checkout code
@@ -21,9 +17,18 @@ jobs:
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run tests
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
         run: yarn test
+
+      - name: Build
+        run: yarn build

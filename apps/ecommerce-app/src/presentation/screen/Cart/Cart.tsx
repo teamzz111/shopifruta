@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "ui-test-fruit";
+import { Button } from "@shopifruta/ui";
 import {
   Trash2,
   Plus,

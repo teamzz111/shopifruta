@@ -8,7 +8,7 @@ import {
   X,
   FileText,
 } from "lucide-react";
-import { Button, Badge } from "ui-test-fruit";
+import { Button, Badge } from "@shopifruta/ui";
 import { useCartStore } from "../../stores/useCartStore";
 import { useAuthStore } from "../../stores/useAuthStore";
 import { Link, useNavigate, useLocation } from "react-router-dom";

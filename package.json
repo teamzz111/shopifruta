@@ -1,5 +1,13 @@
 {
+  "name": "shopifruta",
+  "version": "1.0.0",
   "private": true,
+  "description": "Fruit e-commerce built with React 19, TypeScript and Clean Architecture, with a hand-rolled dependency injection container and a shared UI component library.",
+  "author": "Andrés Largo <contacto@andreslargo.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teamzz111/shopifruta.git"
+  },
   "devDependencies": {
     "@storybook/react": "^8.6.12",
     "@storybook/react-vite": "^8.6.12",
@@ -13,7 +21,11 @@
     "packages/*"
   ],
   "scripts": {
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx || true"
+    "dev": "yarn workspace @shopifruta/ecommerce-app dev",
+    "build": "yarn workspace @shopifruta/ui build && yarn workspace @shopifruta/ecommerce-app build",
+    "lint": "yarn workspace @shopifruta/ecommerce-app lint",
+    "test": "yarn workspace @shopifruta/ui test && yarn workspace @shopifruta/ecommerce-app test",
+    "storybook": "yarn workspace @shopifruta/ui storybook"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.3"

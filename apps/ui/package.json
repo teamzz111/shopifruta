@@ -1,12 +1,13 @@
 {
-  "name": "ui-test-fruit",
+  "name": "@shopifruta/ui",
   "version": "1.0.0",
-  "description": "",
+  "private": true,
+  "description": "ShopiFruta UI component library (Button, Badge, Card, Modal) built with Tailwind CSS and class-variance-authority, documented in Storybook.",
   "scripts": {
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "build": "tsup src/index.ts --format esm,cjs --dts --tsconfig tsconfig.json --external 'react' --external 'react-dom' --inject-style",
-    "chromatic": "npx chromatic --project-token=chpt_c9db664a83f26e6",
+    "chromatic": "chromatic --exit-zero-on-changes",
     "test": "vitest run"
   },
   "main": "./dist/index.js",
@@ -19,8 +20,14 @@
       "require": "./dist/index.js"
     }
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "react",
+    "ui",
+    "components",
+    "tailwindcss",
+    "storybook"
+  ],
+  "author": "Andrés Largo <contacto@andreslargo.com>",
   "license": "ISC",
   "devDependencies": {
     "@chromatic-com/storybook": "^3",
